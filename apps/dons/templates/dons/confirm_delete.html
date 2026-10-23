@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow text-center">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="text-danger">Annuler le don</h3>
+                    <p class="text-muted">
+                        Êtes-vous sûr de vouloir annuler votre don prévu le 
+                        <strong>{{ don.date_planifiee|date:"d/m/Y à H:i" }}</strong> 
+                        au centre <strong>{{ don.centre.nom }}</strong> ?
+                    </p>
+                    <p class="text-danger small">
+                        <i class="fas fa-info-circle me-1"></i>Cette action est irréversible.
+                    </p>
+                    
+                    <form method="POST" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-check me-2"></i>Confirmer l'annulation
+                            </button>
+                            <a href="{% url 'dons:detail' don.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

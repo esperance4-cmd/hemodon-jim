@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-people-arrows text-danger me-2"></i>Système de matching
+        </h1>
+        <div>
+            <a href="{% url 'matching:run' %}" class="btn btn-danger me-2" onclick="return confirm('Lancer le matching automatique ?')">
+                <i class="fas fa-play me-1"></i>Lancer le matching
+            </a>
+            <a href="{% url 'matching:search' %}" class="btn btn-outline-primary">
+                <i class="fas fa-search me-1"></i>Recherche manuelle
+            </a>
+        </div>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-primary mb-0">{{ stats.total_matchs }}</h3>
+                    <small class="text-muted">Total des matchs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-warning mb-0">{{ stats.en_attente }}</h3>
+                    <small class="text-muted">En attente</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-success mb-0">{{ stats.acceptes }}</h3>
+                    <small class="text-muted">Acceptés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger mb-0">{{ stats.taux_succes }}%</h3>
+                    <small class="text-muted">Taux de succès</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Demandes en attente -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Demandes nécessitant un matching
+                <span class="badge bg-light text-danger ms-2">{{ demandes_en_attente }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if demandes_en_attente > 0 %}
+                <a href="{% url 'matching:run' %}" class="btn btn-danger">
+                    <i class="fas fa-play me-1"></i>Lancer le matching automatique
+                </a>
+            {% else %}
+                <p class="text-muted mb-0">
+                    <i class="fas fa-check-circle text-success me-1"></i>
+                    Aucune demande en attente de matching.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Derniers matchs -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-history me-2 text-muted"></i>Derniers matchs
+            </h5>
+            <a href="{% url 'matching:historique' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Demande</th>
+                            <th>Donneur</th>
+                            <th>Score</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in derniers_matchs %}
+                        <tr>
+                            <td><strong>#{{ match.id }}</strong></td>
+                            <td>
+                                <a href="{% url 'demandes:detail' match.demande.id %}">
+                                    Demande #{{ match.demande.id }}
+                                </a>
+                                <span class="badge bg-danger">{{ match.demande.groupe_sanguin }}</span>
+                            </td>
+                            <td>{{ match.donneur.username }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px; width: 80px;">
+                                    <div class="progress-bar bg-{% if match.score >= 80 %}success{% elif match.score >= 60 %}warning{% else %}danger{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ match.score }}%;" 
+                                         aria-valuenow="{{ match.score }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ match.score }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {% if match.statut == 'accepte' %}bg-success{% elif match.statut == 'refuse' %}bg-danger{% elif match.statut == 'notifie' %}bg-info{% elif match.statut == 'expire' %}bg-secondary{% else %}bg-warning{% endif %}">
+                                    {{ match.get_statut_display }}
+                                </span>
+                            </td>
+                            <td>{{ match.date_suggestion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'matching:suggestions' match.demande.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted d-block mb-2"></i>
+                                <p class="text-muted mb-0">Aucun match enregistré.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

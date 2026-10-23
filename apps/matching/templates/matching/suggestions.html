@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'matching:dashboard' %}">Matching</a></li>
+            <li class="breadcrumb-item active">Suggestions</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-users text-danger me-2"></i>Suggestions pour la demande #{{ demande.id }}
+        </h1>
+        <a href="{% url 'matching:search' %}" class="btn btn-outline-primary">
+            <i class="fas fa-search me-1"></i>Rechercher manuellement
+        </a>
+    </div>
+    
+    <!-- Information de la demande -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Groupe sanguin :</strong>
+                    <span class="badge bg-danger fs-6">{{ demande.groupe_sanguin }}</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Quantité :</strong> {{ demande.quantite_necessaire }} poches
+                </div>
+                <div class="col-md-3">
+                    <strong>Statut :</strong>
+                    <span class="badge {% if demande.statut == 'urgente' %}bg-danger{% elif demande.statut == 'traitee' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ demande.get_statut_display }}
+                    </span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Urgence :</strong>
+                    {% if demande.urgence %}
+                    <span class="badge bg-danger">⚠️ Urgent</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Normal</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Liste des suggestions -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2 text-muted"></i>
+                Donneurs compatibles ({{ suggestions|length }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Donneur</th>
+                            <th>Groupe</th>
+                            <th>Centre</th>
+                            <th>Score</th>
+                            <th>Distance</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in suggestions %}
+                        <tr>
+                            <td><strong>#{{ match.id }}</strong></td>
+                            <td>
+                                <strong>{{ match.donneur.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ match.donneur.telephone|default:"Pas de téléphone" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger">{{ match.donneur.groupe_sanguin|default:"NC" }}</span>
+                            </td>
+                            <td>{{ match.centre.nom|truncatechars:20 }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px; width: 80px;">
+                                    <div class="progress-bar bg-{% if match.score >= 80 %}success{% elif match.score >= 60 %}warning{% else %}danger{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ match.score }}%;" 
+                                         aria-valuenow="{{ match.score }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ match.score }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{% if match.distance_km %}{{ match.distance_km }} km{% else %}N/A{% endif %}</td>
+                            <td>
+                                <span class="badge {% if match.statut == 'accepte' %}bg-success{% elif match.statut == 'refuse' %}bg-danger{% elif match.statut == 'notifie' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ match.get_statut_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {% if match.statut == 'en_attente' or match.statut == 'notifie' %}
+                                    <form method="POST" action="{% url 'matching:update' match.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="accepter">
+                                        <button type="submit" class="btn btn-success" onclick="return confirm('Accepter ce match ?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{% url 'matching:update' match.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="refuser">
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Refuser ce match ?')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{% url 'matching:update' match.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="notifier">
+                                        <button type="submit" class="btn btn-info" title="Notifier le donneur">
+                                            <i class="fas fa-bell"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="#" class="btn btn-secondary" title="Voir le profil">
+                                        <i class="fas fa-user"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-users fa-3x text-muted d-block mb-2"></i>
+                                <p class="text-muted mb-0">Aucun donneur compatible trouvé.</p>
+                                <a href="{% url 'matching:search' %}" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="fas fa-search me-1"></i>Rechercher manuellement
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

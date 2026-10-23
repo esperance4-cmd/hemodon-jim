@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-file-medical text-danger me-2"></i>Mes demandes
+        </h1>
+        <a href="{% url 'demandes:create' %}" class="btn btn-danger">
+            <i class="fas fa-plus me-2"></i>Nouvelle demande
+        </a>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger mb-0">{{ stats.total }}</h3>
+                    <small class="text-muted">Total des demandes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-warning mb-0">{{ stats.en_attente }}</h3>
+                    <small class="text-muted">En attente</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-success mb-0">{{ stats.traitees }}</h3>
+                    <small class="text-muted">Traitées</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger mb-0">{{ stats.urgentes }}</h3>
+                    <small class="text-muted">Urgentes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="statut" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        {% for value, label in statuts %}
+                        <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="urgence" class="form-select">
+                        <option value="">Toutes</option>
+                        <option value="true" {% if request.GET.urgence == 'true' %}selected{% endif %}>Urgentes</option>
+                        <option value="false" {% if request.GET.urgence == 'false' %}selected{% endif %}>Non urgentes</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'demandes:list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tableau des demandes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Groupe</th>
+                            <th>Quantité</th>
+                            <th>Centre</th>
+                            <th>Statut</th>
+                            <th>Urgence</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for demande in demandes %}
+                        <tr>
+                            <td><strong>#{{ demande.id }}</strong></td>
+                            <td>
+                                <span class="badge bg-danger">{{ demande.groupe_sanguin }}</span>
+                            </td>
+                            <td>{{ demande.quantite_necessaire }}</td>
+                            <td>{{ demande.centre_destination.nom|truncatechars:20 }}</td>
+                            <td>
+                                <span class="badge {% if demande.statut == 'traitee' %}bg-success{% elif demande.statut == 'urgente' %}bg-danger{% elif demande.statut == 'en_attente' %}bg-warning{% elif demande.statut == 'en_cours' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ demande.get_statut_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if demande.urgence %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i>Urgent
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'demandes:detail' demande.id %}" class="btn btn-outline-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' or user.groupe == 'hospitalier' %}
+                                    <a href="{% url 'demandes:update' demande.id %}" class="btn btn-outline-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if demande.statut in 'en_attente,en_cours' and user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+                                    <a href="{% url 'demandes:annuler' demande.id %}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted d-block mb-2"></i>
+                                <p class="text-muted mb-0">Aucune demande enregistrée.</p>
+                                <a href="{% url 'demandes:create' %}" class="btn btn-danger btn-sm mt-2">
+                                    <i class="fas fa-plus me-1"></i>Faire une demande
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if demandes.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if demandes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ demandes.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in demandes.paginator.page_range %}
+            <li class="page-item {% if demandes.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if demandes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ demandes.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

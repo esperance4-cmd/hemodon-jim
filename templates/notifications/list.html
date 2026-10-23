@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-item {
+        border-left: 4px solid transparent;
+        padding: 15px 20px;
+        transition: all 0.3s ease;
+    }
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    .notification-item.unread {
+        border-left-color: #C41E3A;
+        background-color: #FFF5F5;
+    }
+    .notification-item .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .notification-item .notification-icon.info {
+        background-color: #E3F2FD;
+        color: #0D6EFD;
+    }
+    .notification-item .notification-icon.success {
+        background-color: #E8F5E9;
+        color: #198754;
+    }
+    .notification-item .notification-icon.warning {
+        background-color: #FFF3E0;
+        color: #F57C00;
+    }
+    .notification-item .notification-icon.danger {
+        background-color: #FFEBEE;
+        color: #DC3545;
+    }
+    .notification-item .notification-icon.system {
+        background-color: #F3E5F5;
+        color: #6F42C1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-bell text-danger me-2"></i>Mes notifications
+        </h1>
+        <div>
+            {% if non_lues > 0 %}
+            <a href="?mark_read=all" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-check-double me-1"></i>Tout marquer comme lu
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <select name="type" class="form-select">
+                        <option value="">Tous les types</option>
+                        {% for value, label in types %}
+                        <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="lu" class="form-select">
+                        <option value="">Toutes</option>
+                        <option value="false" {% if request.GET.lu == 'false' %}selected{% endif %}>Non lues</option>
+                        <option value="true" {% if request.GET.lu == 'true' %}selected{% endif %}>Lues</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'notifications:list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Liste des notifications -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            {% for notif in notifications %}
+            <div class="notification-item {% if not notif.est_lue %}unread{% endif %}" 
+                 data-id="{{ notif.id }}">
+                <div class="d-flex align-items-start">
+                    <div class="notification-icon {{ notif.type }} me-3">
+                        <i class="fas {% if notif.type == 'danger' %}fa-exclamation-triangle{% elif notif.type == 'success' %}fa-check-circle{% elif notif.type == 'warning' %}fa-exclamation-circle{% elif notif.type == 'system' %}fa-cog{% else %}fa-info-circle{% endif %}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge {% if notif.type == 'danger' %}bg-danger{% elif notif.type == 'warning' %}bg-warning{% elif notif.type == 'success' %}bg-success{% elif notif.type == 'system' %}bg-secondary{% else %}bg-info{% endif %} me-2">
+                                    {{ notif.get_type_display }}
+                                </span>
+                                <strong>{{ notif.titre }}</strong>
+                            </div>
+                            <small class="text-muted">{{ notif.date_creation|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ notif.message }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">{{ notif.date_creation|timesince }}</small>
+                            <div>
+                                {% if notif.lien %}
+                                <a href="{{ notif.lien }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-arrow-right me-1"></i>Voir plus
+                                </a>
+                                {% endif %}
+                                {% if not notif.est_lue %}
+                                <button class="btn btn-sm btn-outline-success mark-read" data-id="{{ notif.id }}">
+                                    <i class="fas fa-check"></i> Marquer comme lu
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Aucune notification</h5>
+                <p class="text-muted">Vous n'avez pas encore de notifications.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if notifications.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if notifications.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ notifications.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in notifications.paginator.page_range %}
+            <li class="page-item {% if notifications.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if notifications.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ notifications.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Marquer une notification comme lue
+    document.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const url = `/notifications/${id}/mark-read/`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour l'affichage
+                    const item = this.closest('.notification-item');
+                    item.classList.remove('unread');
+                    this.remove();
+                    
+                    // Mettre à jour le compteur
+                    const countBadge = document.querySelector('.notification-count');
+                    if (countBadge) {
+                        const newCount = parseInt(countBadge.textContent) - 1;
+                        if (newCount > 0) {
+                            countBadge.textContent = newCount;
+                        } else {
+                            countBadge.remove();
+                        }
+                    }
+                    
+                    // Afficher un message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show';
+                    alert.innerHTML = `
+                        Notification marquée comme lue.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.container').prepend(alert);
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

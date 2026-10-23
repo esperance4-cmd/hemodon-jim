@@ -1,0 +1,646 @@
+/* ============================================
+   HEMODON-JIM - STYLES AMÉLIORÉS AVEC IMAGES
+   ============================================ */
+
+:root {
+    --red-primary: #C41E3A;
+    --red-dark: #8B1530;
+    --red-light: #E53935;
+    --red-very-light: #FFEBEE;
+    --red-gradient: linear-gradient(135deg, #C41E3A 0%, #8B1530 100%);
+    --white: #FFFFFF;
+    --gray-100: #F8F9FA;
+    --gray-200: #E9ECEF;
+    --gray-300: #DEE2E6;
+    --gray-600: #6C757D;
+    --gray-900: #212529;
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 20px rgba(196,30,58,0.15);
+    --shadow-lg: 0 8px 40px rgba(196,30,58,0.2);
+    --navbar-height: 70px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    padding-top: var(--navbar-height);
+    line-height: 1.6;
+}
+
+a {
+    color: var(--red-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--red-dark);
+    text-decoration: underline;
+}
+
+/* ============================================
+   NAVBAR AVEC LOGO
+   ============================================ */
+
+.navbar-custom {
+    background: var(--red-gradient) !important;
+    box-shadow: var(--shadow-md);
+    padding: 8px 0;
+    transition: all 0.3s ease;
+    min-height: var(--navbar-height);
+}
+
+.navbar-custom .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white !important;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
+}
+
+.navbar-custom .navbar-brand img {
+    height: 45px;
+    width: auto;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.navbar-custom .navbar-brand img:hover {
+    transform: scale(1.05) rotate(-2deg);
+}
+
+.navbar-custom .navbar-brand .brand-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-custom .navbar-brand .brand-text i {
+    color: #FF6B6B;
+    font-size: 1.8rem;
+}
+
+.navbar-custom .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.navbar-custom .nav-link:hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.navbar-custom .nav-link.active {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.navbar-custom .btn-outline-light {
+    border: 2px solid rgba(255,255,255,0.4);
+    color: white;
+    border-radius: 50px;
+    padding: 8px 22px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.navbar-custom .btn-outline-light:hover {
+    background: white;
+    color: var(--red-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   HERO SECTION AVEC IMAGE DE FOND
+   ============================================ */
+
+.hero {
+    background: var(--red-gradient);
+    color: white;
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Image de fond de la hero */
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        url('../images/hero/hero-bg.jpg') center/cover no-repeat,
+        var(--red-gradient);
+    background-blend-mode: overlay;
+    opacity: 0.15;
+    z-index: 0;
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.hero h1 .blood-icon {
+    display: inline-block;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+/* Logo dans la hero */
+.hero .hero-logo {
+    max-width: 300px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+}
+
+.hero .lead {
+    font-size: 1.4rem;
+    opacity: 0.95;
+    font-weight: 300;
+    max-width: 600px;
+}
+
+.hero .btn-light {
+    background: white;
+    color: var(--red-primary);
+    font-weight: 700;
+    padding: 14px 35px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.hero .btn-light:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+
+.hero .btn-outline-light {
+    border: 2px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 14px 35px;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.hero .btn-outline-light:hover {
+    background: white;
+    color: var(--red-primary);
+    transform: translateY(-5px);
+}
+
+/* Image flottante dans la hero */
+.hero .hero-image {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 8px 40px rgba(0,0,0,0.3));
+    animation: floatImage 6s ease-in-out infinite;
+}
+
+@keyframes floatImage {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+/* ============================================
+   SECTION STATISTIQUES AVEC ICÔNES
+   ============================================ */
+
+.stats-section {
+    background: white;
+    padding: 60px 0;
+    box-shadow: var(--shadow-sm);
+    margin: -40px 20px 0;
+    border-radius: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+}
+
+.stat-item .stat-icon {
+    font-size: 3rem;
+    color: var(--red-primary);
+    opacity: 0.3;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.stat-item .stat-icon-img {
+    height: 50px;
+    width: auto;
+    opacity: 0.3;
+    margin-bottom: 10px;
+}
+
+.stat-item .number {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--red-primary);
+    display: block;
+    line-height: 1.2;
+}
+
+.stat-item .label {
+    font-size: 1rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* ============================================
+   CARTES AVEC IMAGES
+   ============================================ */
+
+.card-modern {
+    border: none;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    background: white;
+    height: 100%;
+}
+
+.card-modern:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-modern .card-img-top {
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card-modern:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.card-modern .card-body {
+    padding: 25px;
+}
+
+.card-modern .card-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--gray-900);
+}
+
+.card-modern .card-text {
+    color: var(--gray-600);
+    font-size: 0.95rem;
+}
+
+.card-modern .card-footer {
+    background: transparent;
+    border-top: 1px solid var(--gray-200);
+    padding: 15px 25px;
+}
+
+/* ============================================
+   SECTION CTA AVEC BANNIÈRE
+   ============================================ */
+
+.cta-section {
+    background: var(--red-gradient);
+    padding: 80px 0;
+    border-radius: 30px;
+    margin: 40px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../images/banners/donate-banner.jpg') center/cover no-repeat;
+    opacity: 0.1;
+}
+
+.cta-section h2 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: white;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section p {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.9);
+    max-width: 600px;
+    margin: 15px auto;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section .btn-light {
+    background: white;
+    color: var(--red-primary);
+    font-weight: 700;
+    padding: 14px 40px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section .btn-light:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+
+.cta-section .btn-outline-light {
+    border: 2px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 14px 40px;
+    border-radius: 50px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section .btn-outline-light:hover {
+    background: white;
+    color: var(--red-primary);
+    transform: translateY(-5px);
+}
+
+/* ============================================
+   FOOTER AVEC LOGO
+   ============================================ */
+
+.footer {
+    background: var(--red-gradient);
+    color: rgba(255,255,255,0.9);
+    padding: 60px 0 30px;
+    margin-top: 50px;
+}
+
+.footer .footer-logo {
+    height: 50px;
+    width: auto;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.footer h5 {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.footer p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.95rem;
+}
+
+.footer a {
+    color: rgba(255,255,255,0.8);
+    transition: all 0.3s ease;
+}
+
+.footer a:hover {
+    color: white;
+    text-decoration: none;
+    padding-left: 5px;
+}
+
+.footer .social-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    margin-right: 10px;
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 1.1rem;
+}
+
+.footer .social-icons a:hover {
+    background: white;
+    color: var(--red-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.footer .social-icons a img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+.footer .social-icons a:hover img {
+    filter: none;
+}
+
+.footer .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 20px;
+    margin-top: 30px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.6);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.15); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.08); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes floatImage {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+
+/* ============================================
+   BOUTONS AMÉLIORÉS
+   ============================================ */
+
+.btn-primary-custom {
+    background: var(--red-gradient);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(196,30,58,0.3);
+}
+
+.btn-primary-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(196,30,58,0.4);
+    color: white;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 992px) {
+    .hero h1 {
+        font-size: 3rem;
+    }
+    .stat-item .number {
+        font-size: 2.5rem;
+    }
+    .navbar-custom .navbar-brand img {
+        height: 35px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-top: 60px;
+    }
+    :root {
+        --navbar-height: 60px;
+    }
+    
+    .hero {
+        min-height: 70vh;
+        text-align: center;
+        padding: 60px 0;
+    }
+    
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+    
+    .hero .lead {
+        font-size: 1.1rem;
+    }
+    
+    .hero .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .hero .hero-logo {
+        max-width: 180px;
+    }
+    
+    .stats-section {
+        margin: -30px 10px 0;
+        padding: 30px 0;
+    }
+    
+    .stat-item .number {
+        font-size: 2rem;
+    }
+    
+    .stat-item .stat-icon-img {
+        height: 35px;
+    }
+    
+    .cta-section {
+        padding: 50px 20px;
+        border-radius: 20px;
+    }
+    
+    .cta-section h2 {
+        font-size: 1.8rem;
+    }
+    
+    .footer {
+        text-align: center;
+    }
+    
+    .footer .social-icons {
+        justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .card-modern .card-img-top {
+        height: 180px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+    
+    .stat-item .number {
+        font-size: 1.6rem;
+    }
+    
+    .card-modern .card-img-top {
+        height: 150px;
+    }
+    
+    .navbar-custom .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .navbar-custom .navbar-brand img {
+        height: 30px;
+    }
+}

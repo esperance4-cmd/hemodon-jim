@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Planifier un don - HEMODON-JIM{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>Planifier un don
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>À savoir :</strong> Vous devez attendre <strong>3 mois</strong> entre deux dons.
+                        Assurez-vous d'être en bonne santé avant de planifier votre don.
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Planifier le don
+                            </button>
+                            <a href="{% url 'dons:my_dons' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à mes dons
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Informations supplémentaires -->
+            <div class="card border-0 shadow mt-4">
+                <div class="card-body">
+                    <h6><i class="fas fa-question-circle text-danger me-2"></i>Conditions pour donner son sang</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Âge entre 18 et 65 ans</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Poids supérieur à 50 kg</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Être en bonne santé</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Ne pas avoir donné depuis 3 mois</li>
+                        <li><i class="fas fa-times-circle text-danger me-2"></i>Ne pas avoir de maladies transmissibles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

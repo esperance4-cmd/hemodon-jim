@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assistant IA - HEMODON-JIM{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-robot text-danger me-2"></i>
+                Assistant IA - Don de sang
+            </h2>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="chat-full-container">
+                        <div class="chat-full-messages" id="chatFullMessages">
+                            <!-- Messages affichés ici -->
+                            <div class="message bot">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-sender">Assistant</div>
+                                    <div class="message-text">
+                                        Bonjour ! 👋<br>
+                                        Je suis votre assistant pour le don de sang.<br>
+                                        Comment puis-je vous aider aujourd'hui ?
+                                    </div>
+                                    <div class="message-time">À l'instant</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-full-input">
+                            <div class="quick-replies-full">
+                                <button class="quick-reply-btn" onclick="sendFullMessage('Comment donner son sang ?')">
+                                    🩸 Don
+                                </button>
+                                <button class="quick-reply-btn" onclick="sendFullMessage('Groupe sanguin compatible')">
+                                    🩹 Compatibilité
+                                </button>
+                                <button class="quick-reply-btn" onclick="sendFullMessage('Prendre rendez-vous')">
+                                    📅 RDV
+                                </button>
+                                <button class="quick-reply-btn" onclick="sendFullMessage('Où donner ?')">
+                                    📍 Centres
+                                </button>
+                                <button class="quick-reply-btn" onclick="sendFullMessage('Conditions pour donner')">
+                                    📋 Conditions
+                                </button>
+                            </div>
+                            <form id="chatFullForm" onsubmit="sendFullMessageForm(event)">
+                                {% csrf_token %}
+                                <div class="chat-input-group">
+                                    <input type="text" id="chatFullInput" placeholder="Posez votre question..." required>
+                                    <button type="submit" id="chatFullSendBtn">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="chatbot-typing" id="chatFullTyping">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-text">L'assistant réfléchit...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-full-container {
+    height: 65vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-full-messages {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-full-messages .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeInMessage 0.3s ease;
+}
+
+.chat-full-messages .message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C41E3A, #8B1530);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.chat-full-messages .message-content {
+    max-width: 70%;
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.6;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.chat-full-messages .message.bot .message-content {
+    background: white;
+    color: #333;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-full-messages .message.user {
+    justify-content: flex-end;
+}
+
+.chat-full-messages .message.user .message-content {
+    background: #C41E3A;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-full-messages .message-sender {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+
+.chat-full-messages .message.user .message-sender {
+    color: rgba(255,255,255,0.8);
+}
+
+.chat-full-messages .message-text {
+    word-wrap: break-word;
+}
+
+.chat-full-messages .message-time {
+    font-size: 11px;
+    color: #adb5bd;
+    margin-top: 6px;
+    text-align: right;
+}
+
+.chat-full-messages .message.user .message-time {
+    color: rgba(255,255,255,0.6);
+}
+
+.chat-full-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-full-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.chat-full-messages::-webkit-scrollbar-thumb {
+    background: #C41E3A;
+    border-radius: 4px;
+}
+
+.chat-full-input {
+    padding: 20px 25px;
+    border-top: 1px solid #e9ecef;
+    background: white;
+}
+
+.quick-replies-full {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.quick-replies-full .quick-reply-btn {
+    padding: 6px 18px;
+    border-radius: 20px;
+    border: 1.5px solid #C41E3A;
+    background: white;
+    color: #C41E3A;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.quick-replies-full .quick-reply-btn:hover {
+    background: #C41E3A;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+}
+
+.chat-full-input .chat-input-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.chat-full-input .chat-input-group input {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 30px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.chat-full-input .chat-input-group input:focus {
+    border-color: #C41E3A;
+    box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+}
+
+.chat-full-input .chat-input-group button {
+    padding: 12px 28px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(135deg, #C41E3A, #8B1530);
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.chat-full-input .chat-input-group button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+}
+
+.chat-full-input .chat-input-group button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.chatbot-typing {
+    display: none;
+    padding: 10px 0 0 0;
+    align-items: center;
+    gap: 8px;
+}
+
+.chatbot-typing.active {
+    display: flex;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #C41E3A;
+    animation: typingBounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+    30% { transform: translateY(-8px); opacity: 1; }
+}
+
+.typing-text {
+    font-size: 14px;
+    color: #6c757d;
+    margin-left: 4px;
+}
+
+@keyframes fadeInMessage {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .chat-full-container {
+        height: 55vh;
+    }
+    
+    .chat-full-messages .message-content {
+        max-width: 85%;
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+    
+    .quick-replies-full .quick-reply-btn {
+        font-size: 12px;
+        padding: 4px 12px;
+    }
+}
+</style>
+
+<script>
+let fullConversationId = null;
+
+function sendFullMessageForm(e) {
+    e.preventDefault();
+    const input = document.getElementById('chatFullInput');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    sendFullMessage(message);
+    input.value = '';
+}
+
+function sendFullMessage(message) {
+    // Ajouter le message de l'utilisateur
+    addFullMessage('user', message);
+    
+    // Désactiver l'input
+    document.getElementById('chatFullInput').disabled = true;
+    document.getElementById('chatFullSendBtn').disabled = true;
+    
+    // Afficher l'indicateur de frappe
+    showFullTyping();
+    
+    fetch('/chatbot/api/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value || getCsrfToken(),
+        },
+        body: JSON.stringify({
+            message: message,
+            conversation_id: fullConversationId,
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideFullTyping();
+        document.getElementById('chatFullInput').disabled = false;
+        document.getElementById('chatFullSendBtn').disabled = false;
+        document.getElementById('chatFullInput').focus();
+        
+        if (data.success) {
+            fullConversationId = data.conversation_id;
+            addFullMessage('bot', data.bot_message.content);
+        } else {
+            addFullMessage('bot', 'Désolé, une erreur est survenue. Veuillez réessayer.');
+        }
+    })
+    .catch(error => {
+        hideFullTyping();
+        document.getElementById('chatFullInput').disabled = false;
+        document.getElementById('chatFullSendBtn').disabled = false;
+        addFullMessage('bot', 'Erreur de connexion. Veuillez réessayer.');
+        console.error('Chatbot error:', error);
+    });
+}
+
+function addFullMessage(sender, content) {
+    const container = document.getElementById('chatFullMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const time = new Date().toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    if (sender === 'bot') {
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-sender">Assistant</div>
+                <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-sender">Vous</div>
+                <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+    }
+    
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showFullTyping() {
+    document.getElementById('chatFullTyping').classList.add('active');
+    const container = document.getElementById('chatFullMessages');
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideFullTyping() {
+    document.getElementById('chatFullTyping').classList.remove('active');
+}
+
+function getCsrfToken() {
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    return cookieValue || '';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,150 @@
+<!-- templates/demandes/toutes.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-medical"></i> Toutes les demandes</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{% url 'demandes:toutes' %}">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select name="statut" class="form-select" onchange="this.form.submit()">
+                            <option value="">Tous les statuts</option>
+                            {% for value, label in statuts %}
+                                <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="groupe_sanguin" class="form-select" onchange="this.form.submit()">
+                            <option value="">Tous les groupes</option>
+                            {% for value, label in groupes %}
+                                <option value="{{ value }}" {% if request.GET.groupe_sanguin == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Filtrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des demandes -->
+    <div class="card">
+        <div class="card-body">
+            {% if demandes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Demandeur</th>
+                                <th>Groupe</th>
+                                <th>Quantité</th>
+                                <th>Centre</th>
+                                <th>Urgence</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for demande in demandes %}
+                                <tr>
+                                    <td>{{ demande.id }}</td>
+                                    <td>{{ demande.demandeur.username }}</td>
+                                    <td>{{ demande.groupe_sanguin }}</td>
+                                    <td>{{ demande.quantite_necessaire }} ml</td>
+                                    <td>{{ demande.centre_destination.nom|default:"-" }}</td>
+                                    <td>
+                                        {% if demande.urgence %}
+                                            <span class="badge bg-danger">Urgent</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Normal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ demande.get_statut_display }}</td>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'demandes:detail' demande.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if demande.statut != 'traitee' and demande.statut != 'annulee' %}
+                                            <a href="{% url 'demandes:update' demande.id %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if demandes.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if demandes.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ demandes.previous_page_number }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.groupe_sanguin %}&groupe_sanguin={{ request.GET.groupe_sanguin }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        Précédent
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in demandes.paginator.page_range %}
+                                {% if demandes.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.groupe_sanguin %}&groupe_sanguin={{ request.GET.groupe_sanguin }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if demandes.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ demandes.next_page_number }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.groupe_sanguin %}&groupe_sanguin={{ request.GET.groupe_sanguin }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        Suivant
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-medical fa-3x text-muted"></i>
+                    <p class="mt-3 text-muted">Aucune demande trouvée.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

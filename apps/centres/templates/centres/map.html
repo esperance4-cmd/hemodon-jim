@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    }
+    
+    .map-container {
+        position: relative;
+    }
+    
+    .map-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .map-controls .btn {
+        border-radius: 50px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 10px 20px;
+        background: white;
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .map-controls .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .map-controls .btn i {
+        margin-right: 8px;
+    }
+    
+    /* Popup personnalisé */
+    .custom-popup .popup-header {
+        background: linear-gradient(135deg, #C41E3A, #8B1530);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 12px 12px 0 0;
+        margin: -12px -12px 10px -12px;
+    }
+    
+    .custom-popup .popup-header h6 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .custom-popup .popup-body {
+        padding: 5px 0;
+    }
+    
+    .custom-popup .popup-body .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .custom-popup .popup-body .info-item i {
+        color: #C41E3A;
+        width: 18px;
+    }
+    
+    .custom-popup .popup-stocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .custom-popup .popup-stocks .stock-badge {
+        background: #f8f9fa;
+        padding: 2px 10px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .custom-popup .popup-stocks .stock-badge.en-stock {
+        color: #198754;
+        border: 1px solid #198754;
+    }
+    
+    .custom-popup .popup-stocks .stock-badge.rupture {
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+    
+    .custom-popup .popup-footer {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* Legend */
+    .map-legend {
+        position: absolute;
+        bottom: 30px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        font-size: 0.85rem;
+        min-width: 150px;
+    }
+    
+    .map-legend .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+    
+    .map-legend .legend-item .marker-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #ddd;
+    }
+    
+    .map-legend .legend-item .marker-color.public {
+        background: #0d6efd;
+    }
+    
+    .map-legend .legend-item .marker-color.prive {
+        background: #198754;
+    }
+    
+    .map-legend .legend-item .marker-color.ong {
+        background: #ffc107;
+    }
+    
+    @media (max-width: 768px) {
+        #map {
+            height: 400px;
+        }
+        .map-controls {
+            top: 10px;
+            right: 10px;
+        }
+        .map-controls .btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        .map-legend {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-map-marked-alt text-danger me-2"></i>Carte des centres
+        </h1>
+        <div>
+            <a href="{% url 'centres:list' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-list me-1"></i>Vue liste
+            </a>
+            <a href="{% url 'centres:search' %}" class="btn btn-danger">
+                <i class="fas fa-search me-1"></i>Rechercher
+            </a>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <!-- Contrôles -->
+        <div class="map-controls">
+            <button class="btn btn-light btn-sm" onclick="locateUser()">
+                <i class="fas fa-location-arrow text-danger"></i> Me localiser
+            </button>
+            <button class="btn btn-light btn-sm" onclick="resetMap()">
+                <i class="fas fa-home"></i> Réinitialiser
+            </button>
+        </div>
+
+        <!-- Carte -->
+        <div id="map"></div>
+
+        <!-- Légende -->
+        <div class="map-legend">
+            <strong class="d-block mb-2">Légende</strong>
+            <div class="legend-item">
+                <span class="marker-color public"></span>
+                <span>Public</span>
+            </div>
+            <div class="legend-item">
+                <span class="marker-color prive"></span>
+                <span>Privé</span>
+            </div>
+            <div class="legend-item">
+                <span class="marker-color ong"></span>
+                <span>ONG</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des centres sous la carte -->
+    <div class="mt-4">
+        <h5 class="fw-bold mb-3">
+            <i class="fas fa-list me-2 text-danger"></i>Centres disponibles
+        </h5>
+        <div class="row g-3">
+            {% for centre in centres|slice:":6" %}
+            <div class="col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-truncate">{{ centre.nom }}</h6>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                            {{ centre.commune }}
+                        </small>
+                        <a href="{% url 'centres:detail' centre.id %}" class="btn btn-sm btn-outline-danger mt-2">
+                            <i class="fas fa-eye me-1"></i>Voir
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-muted text-center">Aucun centre trouvé.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+<script>
+    // Données des centres (passées par Django)
+    const centresData = {{ centres_json|safe }};
+    
+    // Initialisation de la carte
+    let map = L.map('map', {
+        center: [18.5944, -72.3074],  // Port-au-Prince
+        zoom: 11,
+        zoomControl: false
+    });
+    
+    // Ajouter le contrôle de zoom
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    
+    // Tuile OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Marqueur personnalisé pour chaque type
+    function getMarkerIcon(type) {
+        let color;
+        switch(type) {
+            case 'public': color = '#0d6efd'; break;
+            case 'prive': color = '#198754'; break;
+            case 'ong': color = '#ffc107'; break;
+            default: color = '#6c757d';
+        }
+        
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">🏥</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
+        });
+    }
+    
+    // Groupe de marqueurs pour le clustering
+    const markers = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        iconCreateFunction: function(cluster) {
+            const childCount = cluster.getChildCount();
+            let size = 'small';
+            let color = '#C41E3A';
+            if (childCount > 10) { size = 'large'; color = '#8B1530'; }
+            else if (childCount > 5) { size = 'medium'; color = '#A01830'; }
+            
+            return L.divIcon({
+                html: `<div style="background-color: ${color}; color: white; border-radius: 50%; width: ${childCount > 10 ? 50 : 40}px; height: ${childCount > 10 ? 50 : 40}px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: ${childCount > 10 ? 16 : 14}px; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">${childCount}</div>`,
+                iconSize: [childCount > 10 ? 50 : 40, childCount > 10 ? 50 : 40],
+                className: 'cluster-marker'
+            });
+        }
+    });
+    
+    // Ajouter les marqueurs
+    centresData.forEach(centre => {
+        if (centre.latitude && centre.longitude) {
+            const marker = L.marker([centre.latitude, centre.longitude], {
+                icon: getMarkerIcon(centre.type)
+            });
+            
+            // Popup personnalisé
+            const popupContent = `
+                <div class="custom-popup" style="max-width: 280px;">
+                    <div class="popup-header">
+                        <h6>${centre.nom}</h6>
+                        <small>${centre.type.charAt(0).toUpperCase() + centre.type.slice(1)}</small>
+                    </div>
+                    <div class="popup-body">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${centre.adresse || centre.commune}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>${centre.telephone || 'Non renseigné'}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>${centre.horaires || 'Horaires non renseignés'}</span>
+                        </div>
+                        <div class="popup-stocks">
+                            ${Object.entries(centre.stocks || {}).map(([groupe, qte]) => `
+                                <span class="stock-badge ${qte > 0 ? 'en-stock' : 'rupture'}">
+                                    ${groupe}: ${qte}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <div class="popup-footer">
+                            <a href="/centres/${centre.id}/" class="btn btn-sm btn-danger w-100">
+                                <i class="fas fa-eye me-1"></i>Voir le centre
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'custom-popup-wrapper'
+            });
+            
+            markers.addLayer(marker);
+        }
+    });
+    
+    map.addLayer(markers);
+    
+    // Fonction de localisation
+    function locateUser() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Ajouter un marqueur de localisation
+                    const userMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            html: '<div style="background-color: #C41E3A; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 3px #C41E3A;"></div>',
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        })
+                    }).addTo(map);
+                    
+                    userMarker.bindPopup('Vous êtes ici').openPopup();
+                    
+                    map.setView([lat, lng], 15);
+                },
+                function(error) {
+                    alert('Impossible de vous localiser. Vérifiez les permissions.');
+                }
+            );
+        } else {
+            alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+        }
+    }
+    
+    // Fonction de réinitialisation
+    function resetMap() {
+        map.setView([18.5944, -72.3074], 11);
+        // Supprimer les marqueurs utilisateur existants
+        map.eachLayer(function(layer) {
+            if (layer instanceof L.Marker && layer.getPopup() && layer.getPopup().getContent() === 'Vous êtes ici') {
+                map.removeLayer(layer);
+            }
+        });
+    }
+    
+    // Exposer les fonctions globalement
+    window.locateUser = locateUser;
+    window.resetMap = resetMap;
+</script>
+{% endblock %}

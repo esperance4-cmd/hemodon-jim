@@ -1,0 +1,120 @@
+{% extends 'app_admin/base_admin.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2><i class="fas fa-hospital me-2 text-danger"></i>Gestion des centres</h2>
+    <a href="{% url 'app_admin:centre_create' %}" class="btn btn-danger">
+        <i class="fas fa-plus"></i> Ajouter un centre
+    </a>
+</div>
+
+<!-- Filtres -->
+<div class="admin-card">
+    <form method="GET" class="row g-3">
+        <div class="col-md-8">
+            <input type="text" name="search" class="form-control" placeholder="Rechercher par nom, commune, département..." value="{{ request.GET.search }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-danger w-100">
+                <i class="fas fa-search"></i> Filtrer
+            </button>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'app_admin:centres' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tableau -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nom</th>
+                    <th>Type</th>
+                    <th>Commune</th>
+                    <th>Département</th>
+                    <th>Téléphone</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for centre in centres %}
+                <tr>
+                    <td>{{ centre.id }}</td>
+                    <td><strong>{{ centre.nom }}</strong></td>
+                    <td>
+                        <span class="badge {% if centre.type == 'public' %}bg-primary{% elif centre.type == 'prive' %}bg-info{% else %}bg-success{% endif %}">
+                            {{ centre.get_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ centre.commune }}</td>
+                    <td>{{ centre.departement }}</td>
+                    <td>{{ centre.telephone }}</td>
+                    <td>
+                        {% if centre.est_actif %}
+                        <span class="badge bg-success">Actif</span>
+                        {% else %}
+                        <span class="badge bg-danger">Inactif</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'app_admin:centre_edit' centre.id %}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'app_admin:centre_delete' centre.id %}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Supprimer ce centre ?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">Aucun centre trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if centres.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if centres.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ centres.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in centres.paginator.page_range %}
+            <li class="page-item {% if centres.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if centres.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ centres.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

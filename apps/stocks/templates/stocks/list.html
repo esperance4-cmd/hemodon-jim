@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">
+            <i class="fas fa-warehouse text-danger me-2"></i>Stocks de sang
+        </h1>
+        <div>
+            <a href="{% url 'stocks:alertes' %}" class="btn btn-outline-danger me-2">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Alertes
+                {% if stats.stocks_alertes > 0 %}
+                <span class="badge bg-danger ms-1">{{ stats.stocks_alertes }}</span>
+                {% endif %}
+            </a>
+            {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+            <a href="{% url 'stocks:bulk_update' %}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i>Mise à jour groupée
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger mb-0">{{ stats.total_poches }}</h3>
+                    <small class="text-muted">Poches totales</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-primary mb-0">{{ stats.centres_actifs }}</h3>
+                    <small class="text-muted">Centres actifs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-warning mb-0">{{ stats.groupes_disponibles }}</h3>
+                    <small class="text-muted">Groupes disponibles</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger mb-0">{{ stats.stocks_alertes }}</h3>
+                    <small class="text-muted">Alertes critiques</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Rechercher un centre..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="centre" class="form-select">
+                        <option value="">Tous les centres</option>
+                        {% for centre in centres %}
+                        <option value="{{ centre.id }}" {% if request.GET.centre == centre.id|stringformat:"s" %}selected{% endif %}>
+                            {{ centre.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="groupe" class="form-select">
+                        <option value="">Tous les groupes</option>
+                        {% for value, label in groupes %}
+                        <option value="{{ value }}" {% if request.GET.groupe == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="alerte" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="true" {% if request.GET.alerte == 'true' %}selected{% endif %}>En alerte</option>
+                        <option value="false" {% if request.GET.alerte == 'false' %}selected{% endif %}>Hors alerte</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{% url 'stocks:list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tableau des stocks -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Centre</th>
+                            <th>Groupe</th>
+                            <th>Quantité</th>
+                            <th>Seuil d'alerte</th>
+                            <th>Statut</th>
+                            <th>Dernière mise à jour</th>
+                            {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+                            <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr class="{% if stock.est_en_alerte %}table-danger{% endif %}">
+                            <td>
+                                <a href="{% url 'stocks:centre' stock.centre.id %}" class="text-decoration-none">
+                                    {{ stock.centre.nom }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger">{{ stock.groupe_sanguin }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ stock.quantite_disponible }}</strong> poches
+                            </td>
+                            <td>{{ stock.seuil_alerte }}</td>
+                            <td>
+                                {% if stock.est_en_alerte %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i>Critique
+                                </span>
+                                {% elif stock.quantite_disponible == 0 %}
+                                <span class="badge bg-secondary">Rupture</span>
+                                {% else %}
+                                <span class="badge bg-success">Disponible</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ stock.date_mise_a_jour|date:"d/m/Y H:i" }}</small>
+                            </td>
+                            {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+                            <td>
+                                <a href="{% url 'stocks:update' stock.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}7{% else %}6{% endif %}" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted d-block mb-2"></i>
+                                <p class="text-muted mb-0">Aucun stock trouvé</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if stocks.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if stocks.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ stocks.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in stocks.paginator.page_range %}
+            <li class="page-item {% if stocks.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if stocks.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ stocks.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

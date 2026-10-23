@@ -1,0 +1,194 @@
+<!-- templates/auth/profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}Profil - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Colonne gauche : Informations -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i> {{ user.username }}
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Photo de profil" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #e74c3c;">
+                    {% else %}
+                        <div class="mb-3">
+                            <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h5>{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted">{{ user.get_groupe_display }}</p>
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-primary">{{ user.groupe_sanguin|default:"Groupe non renseigné" }}</span>
+                        {% if user.est_eligible %}
+                            <span class="badge bg-success">Éligible au don</span>
+                        {% else %}
+                            <span class="badge bg-danger">Non éligible</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-envelope"></i> Email :</strong>
+                            {{ user.email }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-phone"></i> Téléphone :</strong>
+                            {{ user.telephone }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-map-marker-alt"></i> Adresse :</strong>
+                            {{ user.adresse|default:"Non renseignée" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-city"></i> Commune :</strong>
+                            {{ user.commune|default:"Non renseignée" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-map"></i> Département :</strong>
+                            {{ user.departement|default:"Non renseigné" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fas fa-calendar"></i> Date de naissance :</strong>
+                            {{ user.date_naissance|date:"d/m/Y"|default:"Non renseignée" }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Colonne droite : Formulaire d'édition -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i> Modifier mon profil
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone"></i> Téléphone
+                                </label>
+                                {{ form.telephone }}
+                                {% if form.telephone.errors %}
+                                    <div class="text-danger">{{ form.telephone.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_naissance.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar"></i> Date de naissance
+                                </label>
+                                {{ form.date_naissance }}
+                                {% if form.date_naissance.errors %}
+                                    <div class="text-danger">{{ form.date_naissance.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.groupe_sanguin.id_for_label }}" class="form-label">
+                                    <i class="fas fa-tint"></i> Groupe sanguin
+                                </label>
+                                {{ form.groupe_sanguin }}
+                                {% if form.groupe_sanguin.errors %}
+                                    <div class="text-danger">{{ form.groupe_sanguin.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.commune.id_for_label }}" class="form-label">
+                                    <i class="fas fa-city"></i> Commune
+                                </label>
+                                {{ form.commune }}
+                                {% if form.commune.errors %}
+                                    <div class="text-danger">{{ form.commune.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.departement.id_for_label }}" class="form-label">
+                                    <i class="fas fa-map"></i> Département
+                                </label>
+                                {{ form.departement }}
+                                {% if form.departement.errors %}
+                                    <div class="text-danger">{{ form.departement.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                                    <i class="fas fa-home"></i> Adresse
+                                </label>
+                                {{ form.adresse }}
+                                {% if form.adresse.errors %}
+                                    <div class="text-danger">{{ form.adresse.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.photo.id_for_label }}" class="form-label">
+                                    <i class="fas fa-camera"></i> Photo de profil
+                                </label>
+                                {{ form.photo }}
+                                {% if form.photo.errors %}
+                                    <div class="text-danger">{{ form.photo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'app_admin/base_admin.html' %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-danger text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ stats.total_donneurs }}</div>
+                    <div class="stat-label">Donneurs actifs</div>
+                </div>
+                <i class="fas fa-users fa-3x opacity-50"></i>
+            </div>
+            <small>+{{ stats.nouveaux_donneurs_mois }} ce mois</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ stats.total_centres }}</div>
+                    <div class="stat-label">Centres actifs</div>
+                </div>
+                <i class="fas fa-hospital fa-3x opacity-50"></i>
+            </div>
+            <small>Centres partenaires</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ stats.total_dons }}</div>
+                    <div class="stat-label">Dons effectués</div>
+                </div>
+                <i class="fas fa-droplet fa-3x opacity-50"></i>
+            </div>
+            <small>Vies sauvées : {{ stats.total_dons|add:stats.total_dons|add:stats.total_dons }}</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-warning text-dark">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ stats.demandes_urgentes }}</div>
+                    <div class="stat-label">Demandes urgentes</div>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+            </div>
+            <small>Stocks critiques : {{ stats.stocks_critiques }}</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <h5 class="card-title"><i class="fas fa-chart-bar me-2 text-danger"></i>Évolution des dons (6 mois)</h5>
+            <canvas id="donsChart" height="250"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <h5 class="card-title"><i class="fas fa-chart-pie me-2 text-danger"></i>Demandes par statut</h5>
+            <canvas id="demandesChart" height="250"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications récentes -->
+<div class="row g-4 mt-2">
+    <div class="col-lg-7">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-bell me-2 text-danger"></i>Dernières notifications</h5>
+                <a href="{% url 'app_admin:notifications' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="list-group list-group-flush mt-3">
+                {% for notif in notifications %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0 {% if not notif.est_lue %}bg-light{% endif %}">
+                    <div>
+                        <span class="badge bg-{% if notif.type == 'danger' %}danger{% elif notif.type == 'warning' %}warning{% elif notif.type == 'success' %}success{% else %}info{% endif %} me-2">
+                            {{ notif.get_type_display }}
+                        </span>
+                        {{ notif.titre }}
+                        <small class="text-muted d-block">{{ notif.message|truncatechars:60 }}</small>
+                    </div>
+                    <small class="text-muted">{{ notif.date_creation|timesince }}</small>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center my-3">Aucune notification</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-history me-2 text-danger"></i>Dernières actions</h5>
+                <a href="{% url 'app_admin:logs' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="list-group list-group-flush mt-3">
+                {% for log in logs %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <strong>{{ log.utilisateur.username|default:"Système" }}</strong>
+                        <span class="badge bg-secondary">{{ log.get_action_display }}</span>
+                        <small class="text-muted">{{ log.objet_repr }}</small>
+                    </div>
+                    <small class="text-muted">{{ log.date_action|timesince }}</small>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center my-3">Aucune action enregistrée</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dons chart
+    const ctx1 = document.getElementById('donsChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: [{% for item in dons_par_mois %}'{{ item.mois }}',{% endfor %}],
+            datasets: [{
+                label: 'Dons effectués',
+                data: [{% for item in dons_par_mois %}{{ item.count }},{% endfor %}],
+                backgroundColor: 'rgba(196, 30, 58, 0.7)',
+                borderColor: 'rgba(196, 30, 58, 1)',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // Demandes chart
+    const ctx2 = document.getElementById('demandesChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for item in demandes_statut %}'{{ item.get_statut_display }}'|default:item.statut,{% endfor %}],
+            datasets: [{
+                data: [{% for item in demandes_statut %}{{ item.count }},{% endfor %}],
+                backgroundColor: ['#FFC107', '#0D6EFD', '#198754', '#DC3545', '#6C757D']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

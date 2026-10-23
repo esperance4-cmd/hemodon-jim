@@ -1,0 +1,122 @@
+{% load static %}
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+        {% if count > 0 %}
+        <span class="badge bg-danger rounded-pill notification-count">{{ count }}</span>
+        {% endif %}
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" style="width: 350px; max-height: 400px; overflow-y: auto;">
+        <li class="dropdown-header d-flex justify-content-between align-items-center">
+            <span>Notifications</span>
+            {% if count > 0 %}
+            <button class="btn btn-sm btn-link text-decoration-none mark-all-read" data-url="{% url 'notifications:mark_all_read' %}">
+                Tout marquer comme lu
+            </button>
+            {% endif %}
+        </li>
+        
+        {% if recent %}
+            {% for notif in recent %}
+            <li>
+                <a href="{% if notif.lien %}{{ notif.lien }}{% else %}#{% endif %}" 
+                   class="dropdown-item notification-item {% if not notif.est_lue %}unread{% endif %}"
+                   data-id="{{ notif.id }}">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <span class="badge {% if notif.type == 'danger' %}bg-danger{% elif notif.type == 'warning' %}bg-warning{% elif notif.type == 'success' %}bg-success{% else %}bg-info{% endif %} me-2">
+                                {{ notif.get_type_display }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong>{{ notif.titre }}</strong>
+                            <p class="mb-0 small text-muted">{{ notif.message|truncatechars:60 }}</p>
+                            <small class="text-muted">{{ notif.date_creation|timesince }}</small>
+                        </div>
+                        {% if not notif.est_lue %}
+                        <button class="btn btn-sm btn-link mark-read" data-id="{{ notif.id }}" data-url="{% url 'notifications:mark_read' notif.id %}">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        {% else %}
+            <li class="dropdown-item text-center text-muted py-3">
+                <i class="fas fa-inbox fa-2x d-block mb-2"></i>
+                Aucune notification
+            </li>
+        {% endif %}
+        
+        <li><hr class="dropdown-divider"></li>
+        <li class="text-center">
+            <a href="{% url 'notifications:list' %}" class="dropdown-item">
+                Voir toutes les notifications
+            </a>
+        </li>
+    </ul>
+</li>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Marquer une notification comme lue
+    document.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = this.dataset.id;
+            const url = this.dataset.url;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour l'affichage
+                    const item = this.closest('.notification-item');
+                    item.classList.remove('unread');
+                    this.remove();
+                    
+                    // Mettre à jour le compteur
+                    const count = document.querySelector('.notification-count');
+                    if (count) {
+                        const newCount = parseInt(count.textContent) - 1;
+                        if (newCount > 0) {
+                            count.textContent = newCount;
+                        } else {
+                            count.remove();
+                        }
+                    }
+                }
+            });
+        });
+    });
+    
+    // Marquer tout comme lu
+    document.querySelector('.mark-all-read')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const url = this.dataset.url;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    });
+});
+</script>

@@ -1,0 +1,134 @@
+{% extends 'app_admin/base_admin.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2><i class="fas fa-file-medical me-2 text-danger"></i>Gestion des demandes</h2>
+    <div>
+        <a href="{% url 'app_admin:export' 'demandes' %}" class="btn btn-outline-success btn-sm me-2">
+            <i class="fas fa-file-export"></i> Exporter CSV
+        </a>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="admin-card">
+    <form method="GET" class="row g-3">
+        <div class="col-md-3">
+            <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ request.GET.search }}">
+        </div>
+        <div class="col-md-2">
+            <select name="statut" class="form-select">
+                <option value="">Tous les statuts</option>
+                {% for value, label in statuts %}
+                <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="urgence" class="form-select">
+                <option value="">Toutes</option>
+                <option value="true" {% if request.GET.urgence == 'true' %}selected{% endif %}>Urgentes</option>
+                <option value="false" {% if request.GET.urgence == 'false' %}selected{% endif %}>Non urgentes</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-danger w-100">
+                <i class="fas fa-search"></i> Filtrer
+            </button>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'app_admin:demandes' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tableau -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table admin-table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Demandeur</th>
+                    <th>Groupe</th>
+                    <th>Quantité</th>
+                    <th>Centre</th>
+                    <th>Statut</th>
+                    <th>Urgence</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for demande in demandes %}
+                <tr>
+                    <td><strong>#{{ demande.id }}</strong></td>
+                    <td>{{ demande.demandeur.username }}</td>
+                    <td><span class="badge bg-danger">{{ demande.groupe_sanguin }}</span></td>
+                    <td>{{ demande.quantite_necessaire }}</td>
+                    <td>{{ demande.centre_destination.nom|truncatechars:20 }}</td>
+                    <td>
+                        <span class="badge {% if demande.statut == 'traitee' %}bg-success{% elif demande.statut == 'urgente' %}bg-danger{% elif demande.statut == 'en_attente' %}bg-warning{% elif demande.statut == 'en_cours' %}bg-primary{% else %}bg-secondary{% endif %}">
+                            {{ demande.get_statut_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if demande.urgence %}
+                        <span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> Urgent</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'app_admin:demande_update' demande.id %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted">Aucune demande trouvée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if demandes.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if demandes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ demandes.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in demandes.paginator.page_range %}
+            <li class="page-item {% if demandes.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if demandes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ demandes.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

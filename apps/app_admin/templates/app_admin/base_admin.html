@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .admin-wrapper {
+        display: flex;
+        min-height: calc(100vh - 150px);
+    }
+    
+    .admin-sidebar {
+        width: 260px;
+        min-height: 100%;
+        background: linear-gradient(135deg, #C41E3A 0%, #8B1530 100%);
+        padding: 20px 0;
+        border-radius: 0 20px 20px 0;
+        flex-shrink: 0;
+    }
+    
+    .admin-sidebar .sidebar-brand {
+        padding: 0 20px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .admin-sidebar .sidebar-brand h5 {
+        color: white;
+        font-weight: 700;
+    }
+    
+    .admin-sidebar .sidebar-brand small {
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .admin-sidebar .nav-link {
+        color: rgba(255,255,255,0.8) !important;
+        padding: 12px 20px;
+        margin: 2px 10px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+    
+    .admin-sidebar .nav-link:hover {
+        background: rgba(255,255,255,0.15);
+        color: white !important;
+    }
+    
+    .admin-sidebar .nav-link.active {
+        background: rgba(255,255,255,0.2);
+        color: white !important;
+    }
+    
+    .admin-sidebar .nav-link i {
+        width: 22px;
+        margin-right: 12px;
+        text-align: center;
+    }
+    
+    .admin-sidebar .nav-link .badge {
+        margin-left: auto;
+    }
+    
+    .admin-sidebar hr {
+        border-color: rgba(255,255,255,0.1);
+        margin: 15px 10px;
+    }
+    
+    .admin-sidebar .sidebar-footer {
+        padding: 20px;
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+    }
+    
+    .admin-content {
+        flex: 1;
+        padding: 25px 30px;
+        background: #f8f9fa;
+    }
+    
+    .admin-content .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .admin-content .page-header h2 {
+        font-weight: 700;
+        color: #2C2C2C;
+    }
+    
+    .admin-content .page-header .btn {
+        border-radius: 50px;
+    }
+    
+    .admin-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    
+    .admin-card .card-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #2C2C2C;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        padding: 20px;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    /* Tables */
+    .admin-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2C2C2C;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .admin-table td {
+        vertical-align: middle;
+    }
+    
+    .admin-table .badge {
+        padding: 5px 12px;
+        border-radius: 50px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .admin-sidebar {
+            width: 200px;
+        }
+        .admin-content {
+            padding: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .admin-wrapper {
+            flex-direction: column;
+        }
+        .admin-sidebar {
+            width: 100%;
+            border-radius: 0;
+            margin-bottom: 20px;
+        }
+        .admin-sidebar .nav-link {
+            padding: 10px 15px;
+        }
+        .stat-card .stat-number {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="sidebar-brand">
+            <h5><i class="fas fa-crown me-2"></i>HEMODON-JIM</h5>
+            <small>Panel d'administration</small>
+        </div>
+        
+        <nav class="nav flex-column">
+            <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="{% url 'app_admin:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Tableau de bord
+            </a>
+            <a class="nav-link {% if active_page == 'users' %}active{% endif %}" href="{% url 'app_admin:users' %}">
+                <i class="fas fa-users"></i> Utilisateurs
+                <span class="badge bg-light text-dark">{{ stats.total_donneurs|default:0 }}</span>
+            </a>
+            <a class="nav-link {% if active_page == 'centres' %}active{% endif %}" href="{% url 'app_admin:centres' %}">
+                <i class="fas fa-hospital"></i> Centres
+                <span class="badge bg-light text-dark">{{ stats.total_centres|default:0 }}</span>
+            </a>
+            <a class="nav-link {% if active_page == 'stocks' %}active{% endif %}" href="{% url 'app_admin:stocks' %}">
+                <i class="fas fa-warehouse"></i> Stocks
+                <span class="badge bg-danger">{{ stats.stocks_critiques|default:0 }}</span>
+            </a>
+            <a class="nav-link {% if active_page == 'demandes' %}active{% endif %}" href="{% url 'app_admin:demandes' %}">
+                <i class="fas fa-file-medical"></i> Demandes
+                <span class="badge bg-warning">{{ stats.demandes_urgentes|default:0 }}</span>
+            </a>
+            <hr>
+            <a class="nav-link {% if active_page == 'notifications' %}active{% endif %}" href="{% url 'app_admin:notifications' %}">
+                <i class="fas fa-bell"></i> Notifications
+            </a>
+            <a class="nav-link {% if active_page == 'logs' %}active{% endif %}" href="{% url 'app_admin:logs' %}">
+                <i class="fas fa-history"></i> Journaux
+            </a>
+            <a class="nav-link {% if active_page == 'reports' %}active{% endif %}" href="{% url 'app_admin:reports' %}">
+                <i class="fas fa-chart-bar"></i> Rapports
+            </a>
+            <hr>
+            <a class="nav-link" href="{% url 'admin:index' %}">
+                <i class="fas fa-database"></i> Admin Django
+            </a>
+            <a class="nav-link" href="{% url 'home' %}">
+                <i class="fas fa-arrow-left"></i> Retour au site
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <small>{{ user.username }} • {{ user.get_groupe_display }}</small>
+        </div>
+    </div>
+    
+    <!-- Content -->
+    <div class="admin-content">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.classList.add('fade');
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}

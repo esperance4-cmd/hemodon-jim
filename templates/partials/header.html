@@ -1,0 +1,198 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <img src="{% static 'images/logo/logo1.jpg' %}" alt="HEMODON-JIM" height="40" class="me-2" style="border-radius: 8px;">
+            <span>HEMODON-JIM</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- ACCUEIL -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                </li>
+                
+                {% if user.is_authenticated %}
+                    
+                    <!-- ========================================== -->
+                    <!-- MENU ADMIN (superuser, admin, pnts)       -->
+                    <!-- ========================================== -->
+                    {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'admin-panel' in request.path %}active{% endif %}" href="{% url 'app_admin:dashboard' %}">
+                                <i class="fas fa-crown"></i> Panel Admin
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'app_admin:users' %}">
+                                <i class="fas fa-users"></i> Utilisateurs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'app_admin:centres' %}">
+                                <i class="fas fa-hospital"></i> Centres
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'stocks' in request.path %}active{% endif %}" href="{% url 'stocks:list' %}">
+                                <i class="fas fa-warehouse"></i> Stocks
+                            </a>
+                        </li>
+                
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'demandes' in request.path %}active{% endif %}" href="{% url 'demandes:toutes' %}">
+                                <i class="fas fa-file-medical"></i> Demandes
+                                <span class="badge bg-warning ms-1">{{ demandes_urgentes|default:0 }}</span>
+                            </a>
+                        </li>
+                    
+                    <!-- ========================================== -->
+                    <!-- MENU UTILISATEUR (donneur)                -->
+                    <!-- ========================================== -->
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'mes-dons' in request.path %}active{% endif %}" href="{% url 'dons:my_dons' %}">
+                                <i class="fas fa-droplet"></i> Mes dons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dons:create' %}">
+                                <i class="fas fa-calendar-plus"></i> Planifier un don
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'carte' in request.path %}active{% endif %}" href="{% url 'centres:map' %}">
+                                <i class="fas fa-map-marked-alt"></i> Centres
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'mes-demandes' in request.path %}active{% endif %}" href="{% url 'demandes:list' %}">
+                                <i class="fas fa-file-medical"></i> Mes demandes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'centres:search' %}">
+                                <i class="fas fa-search"></i> Rechercher
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- ========================================== -->
+                    <!--  NOTIFICATIONS                          -->
+                    <!-- ========================================== -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'notifications:list' %}">
+                            <i class="fas fa-bell fa-lg"></i>
+                            {% if user_notifications_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; margin-top: -3px;">
+                                {{ user_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <!--  Assistant IA  -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'chatbot:chatbot' %}">
+                            <i class="fas fa-robot"></i> Assistant IA
+                        </a>
+                    </li>
+                    
+                    <!-- ========================================== -->
+                    <!--  PROFIL / DÉCONNEXION                   -->
+                    <!-- ========================================== -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">
+                                    <i class="fas fa-user"></i> Mon profil
+                                </a>
+                            </li>
+                            
+                            {% if user.groupe != 'admin' and user.groupe != 'pnts' and not user.is_superuser %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dons:my_dons' %}">
+                                    <i class="fas fa-droplet"></i> Mes dons
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dons:create' %}">
+                                    <i class="fas fa-calendar-plus"></i> Nouveau rendez-vous
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% if user.is_superuser or user.groupe == 'admin' or user.groupe == 'pnts' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="dropdown-header">Administration</li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'app_admin:dashboard' %}">
+                                    <i class="fas fa-crown"></i> Panel Admin
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'app_admin:users' %}">
+                                    <i class="fas fa-users"></i> Gérer utilisateurs
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'app_admin:centres' %}">
+                                    <i class="fas fa-hospital"></i> Gérer centres
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'stocks:list' %}">
+                                    <i class="fas fa-warehouse"></i> Gérer stocks
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                    <i class="fas fa-database"></i> Admin Django (base)
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                
+                {% else %}
+                    <!-- DÉCONNECTÉ -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Connexion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus"></i> S'inscrire
+                        </a>
+                    </li>
+                {% endif %}
+                
+            </ul>
+        </div>
+    </div>
+</nav>

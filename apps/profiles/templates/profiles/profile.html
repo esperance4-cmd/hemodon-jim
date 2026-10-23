@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profil - {{ profile_user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar du profil -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="Photo de profil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-placeholder" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #C41E3A, #8B1530); display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 60px; color: white;">
+                                {{ profile_user.first_name|first }}{{ profile_user.last_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4>{{ profile_user.get_full_name }}</h4>
+                    <p class="text-muted">
+                        <i class="fas fa-user-tag me-1"></i>
+                        {{ profile_user.get_role_display }}
+                    </p>
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-droplet me-1"></i>
+                            Groupe: {{ profile_user.get_blood_group_display }}
+                        </span>
+                    </div>
+                    
+                    {% if can_edit %}
+                        <div class="mt-3">
+                            <a href="{% url 'profiles:profile_edit' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-edit me-2"></i>Modifier le profil
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Statistiques rapides -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-chart-bar me-2 text-danger"></i>Statistiques
+                    </h6>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h5 class="text-danger">{{ profile.total_donations }}</h5>
+                            <small class="text-muted">Dons</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-success">{{ profile.lives_saved }}</h5>
+                            <small class="text-muted">Vies sauvées</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="small">
+                        <p class="mb-1">
+                            <i class="fas fa-calendar me-2"></i>
+                            Donneur depuis: {{ profile.donor_since|default:"Non défini" }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-clock me-2"></i>
+                            Dernier don: {{ profile.last_donation_date|default:"Aucun don" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Éligibilité -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-check-circle me-2 text-success"></i>Éligibilité au don
+                    </h6>
+                    {% if eligibility.eligible %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Vous êtes éligible au don de sang ! 🩸
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ eligibility.reason }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-lg-8">
+            <!-- Informations personnelles -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2 text-danger"></i>Informations personnelles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nom complet:</strong> {{ profile_user.get_full_name }}</p>
+                            <p><strong>Email:</strong> {{ profile_user.email }}</p>
+                            <p><strong>Téléphone:</strong> {{ profile_user.phone_number|default:"Non renseigné" }}</p>
+                            <p><strong>Date de naissance:</strong> {{ profile_user.date_of_birth|date:"d/m/Y"|default:"Non renseigné" }}</p>
+                            <p><strong>Âge:</strong> {{ profile_user.age|default:"Non renseigné" }} ans</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Groupe sanguin:</strong> {{ profile_user.get_blood_group_display }}</p>
+                            <p><strong>Adresse:</strong> {{ profile_user.address|default:"Non renseigné" }}</p>
+                            <p><strong>Ville:</strong> {{ profile_user.city|default:"Non renseigné" }}</p>
+                            <p><strong>Pays:</strong> {{ profile_user.country|default:"Non renseigné" }}</p>
+                            <p><strong>Rôle:</strong> {{ profile_user.get_role_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informations médicales -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heartbeat me-2 text-danger"></i>Informations médicales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Poids:</strong> {{ profile.weight_kg|default:"Non renseigné" }} kg</p>
+                            <p><strong>Taille:</strong> {{ profile.height_cm|default:"Non renseigné" }} cm</p>
+                            <p><strong>IMC:</strong> {{ profile.get_bmi|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Allergies:</strong> {{ profile.allergies|default:"Aucune" }}</p>
+                            <p><strong>Médicaments:</strong> {{ profile.medications|default:"Aucun" }}</p>
+                        </div>
+                    </div>
+                    {% if profile.medical_conditions %}
+                        <div class="mt-2">
+                            <strong>Conditions médicales:</strong>
+                            <p class="text-muted">{{ profile.medical_conditions }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Contact d'urgence -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-phone-alt me-2 text-danger"></i>Contact d'urgence
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Nom:</strong> {{ profile.emergency_contact_name|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Téléphone:</strong> {{ profile.emergency_contact_phone|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Relation:</strong> {{ profile.emergency_contact_relation|default:"Non renseigné" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Activités récentes -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2 text-danger"></i>Activités récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for activity in profile_user.activities.all|slice:":5" %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-circle text-success me-2" style="font-size: 8px;"></i>
+                                    {{ activity.get_action_display }}
+                                </div>
+                                <small class="text-muted">{{ activity.created_at|timesince }}</small>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">Aucune activité récente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

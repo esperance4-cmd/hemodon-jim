@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'centres:list' %}">Centres</a></li>
+            <li class="breadcrumb-item active">{{ centre.nom }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Informations du centre -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-hospital me-2"></i>{{ centre.nom }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>
+                                <i class="fas fa-tag text-danger me-2"></i>
+                                <strong>Type :</strong> {{ centre.get_type_display }}
+                            </p>
+                            <p>
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <strong>Adresse :</strong> {{ centre.adresse }}
+                            </p>
+                            <p>
+                                <i class="fas fa-city text-danger me-2"></i>
+                                <strong>Commune :</strong> {{ centre.commune }}
+                            </p>
+                            <p>
+                                <i class="fas fa-globe text-danger me-2"></i>
+                                <strong>Département :</strong> {{ centre.departement }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <i class="fas fa-phone text-danger me-2"></i>
+                                <strong>Téléphone :</strong> {{ centre.telephone }}
+                            </p>
+                            <p>
+                                <i class="fas fa-envelope text-danger me-2"></i>
+                                <strong>Email :</strong> {{ centre.email|default:"Non renseigné" }}
+                            </p>
+                            <p>
+                                <i class="fas fa-clock text-danger me-2"></i>
+                                <strong>Horaires :</strong><br>
+                                {{ centre.horaires|default:"Horaires non renseignés"|linebreaks }}
+                            </p>
+                            <p>
+                                <i class="fas fa-users text-danger me-2"></i>
+                                <strong>Capacité journalière :</strong> {{ centre.capacite_journaliere }} donneurs
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if centre.latitude and centre.longitude %}
+                    <div class="mt-3">
+                        <a href="https://www.openstreetmap.org/directions?from=&to={{ centre.latitude }}%2C{{ centre.longitude }}" 
+                           target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-directions me-1"></i>Itinéraire
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Stocks disponibles -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-warehouse text-danger me-2"></i>Stocks disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for stock in stocks %}
+                        <div class="col-md-3 col-6">
+                            <div class="card text-center h-100">
+                                <div class="card-body p-3">
+                                    <h3 class="mb-0">{{ stock.groupe_sanguin }}</h3>
+                                    <p class="mb-0">{{ stock.quantite_disponible }} poches</p>
+                                    {% if stock.quantite_disponible <= stock.seuil_alerte %}
+                                    <span class="badge bg-danger mt-1">⚠️ Stock critique</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted text-center">Aucun stock disponible</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold">Actions</h5>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-danger">
+                            <i class="fas fa-calendar-plus me-2"></i>Prendre rendez-vous
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-phone me-2"></i>Contacter
+                        </a>
+                        <a href="{% url 'centres:map' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-map-marked-alt me-2"></i>Voir sur la carte
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informations supplémentaires -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold">Informations</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Centre {% if centre.est_actif %}actif{% else %}inactif{% endif %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar text-muted me-2"></i>
+                            Créé le : {{ centre.created_at|date:"d/m/Y" }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

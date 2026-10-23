@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4>Inscription</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-danger w-100">S'inscrire</button>
+                </form>
+                <hr>
+                <p class="text-center">Déjà un compte ? <a href="{% url 'login' %}">Connectez-vous</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

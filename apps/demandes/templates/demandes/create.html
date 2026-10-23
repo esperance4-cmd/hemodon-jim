@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-medical me-2"></i>Faire une demande de sang
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Important :</strong> Vérifiez les stocks disponibles avant de faire votre demande.
+                        <a href="{% url 'stocks:list' %}" class="alert-link">Voir les stocks</a>
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Envoyer la demande
+                            </button>
+                            <a href="{% url 'demandes:list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à mes demandes
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Informations -->
+            <div class="card border-0 shadow mt-4">
+                <div class="card-body">
+                    <h6><i class="fas fa-lightbulb text-danger me-2"></i>Conseils</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Vérifiez la disponibilité du groupe sanguin</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Indiquez si la demande est urgente</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i>Précisez le centre de destination</li>
+                        <li><i class="fas fa-info-circle text-primary me-2"></i>Les demandes urgentes sont traitées en priorité</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
