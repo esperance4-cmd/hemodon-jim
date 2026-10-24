@@ -257,6 +257,15 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
 <script>
+    // ✅ CORRECTION 1 : Forcer l'envoi du Referer pour OSM
+    // Cette balise meta doit être dans le <head>, mais on l'injecte ici pour être sûr
+    if (!document.querySelector('meta[name="referrer"]')) {
+        const meta = document.createElement('meta');
+        meta.name = 'referrer';
+        meta.content = 'strict-origin-when-cross-origin';
+        document.head.appendChild(meta);
+    }
+
     // Données des centres (passées par Django)
     const centresData = {{ centres_json|safe }};
     
@@ -270,8 +279,9 @@
     // Ajouter le contrôle de zoom
     L.control.zoom({ position: 'topright' }).addTo(map);
     
-    // Tuile OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // ✅ CORRECTION 2 : Tuile OpenStreetMap standard avec attribution complète
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     

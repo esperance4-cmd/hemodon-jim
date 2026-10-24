@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 import json
@@ -92,7 +93,7 @@ def centre_detail(request, centre_id):
     stocks = Stock.objects.filter(centre=centre)
     
     # Vérifier si le centre a des stocks critiques
-    stocks_critiques = stocks.filter(quantite_disponible__lte=models.F('seuil_alerte'))
+    stocks_critiques = stocks.filter(quantite_disponible__lte=F('seuil_alerte'))
     
     context = {
         'centre': centre,
